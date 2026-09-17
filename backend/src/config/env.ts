@@ -1,36 +1,32 @@
 import "dotenv/config";
+import { z } from "zod";
 
-const port = Number(process.env.PORT);
-const databasePort = Number(process.env.DATABASE_PORT ?? 5432);
+const envSchema = z.object({
+  PORT: z.coerce.number().int().positive(),
 
-if (!Number.isInteger(port) || port <= 0) {
-  throw new Error("PORT must be a positive integer");
-}
+  DB_HOST: z.string().min(1),
+  DB_PORT: z.coerce.number().int().positive(),
+  DB_NAME: z.string().min(1),
+  DB_USER: z.string().min(1),
+  DB_PASSWORD: z.string().min(1),
+});
 
-if (!Number.isInteger(databasePort) || databasePort <= 0) {
-  throw new Error("DATABASE_PORT must be a positive integer");
-}
+const parsedEnv = envSchema.safeParse(process.env);
 
-const requiredDatabaseValues = {
-  host: process.env.DATABASE_HOST,
-  name: process.env.DATABASE_NAME,
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-};
-
-for (const [key, value] of Object.entries(requiredDatabaseValues)) {
-  if (!value) {
-    throw new Error(`DATABASE_${key.toUpperCase()} is required`);
-  }
+if (!parsedEnv.success) {
+  console.error("Invalid environment configuration:");
+  console.error(parsedEnv.error.issues);
+  process.exit(1);
 }
 
 export const env = {
-  port,
+  port: parsedEnv.data.PORT,
+
   database: {
-    host: requiredDatabaseValues.host,
-    port: databasePort,
-    name: requiredDatabaseValues.name,
-    user: requiredDatabaseValues.user,
-    password: requiredDatabaseValues.password,
+    host: parsedEnv.data.DB_HOST,
+    port: parsedEnv.data.DB_PORT,
+    name: parsedEnv.data.DB_NAME,
+    user: parsedEnv.data.DB_USER,
+    password: parsedEnv.data.DB_PASSWORD,
   },
 };

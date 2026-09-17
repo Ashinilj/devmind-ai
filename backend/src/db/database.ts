@@ -12,3 +12,7 @@ export const pool = new Pool({
 pool.on("error", (error) => {
   console.error("Unexpected PostgreSQL pool error", error);
 });
+
+export const checkDatabaseConnection = async (): Promise<void> => {
+  await pool.query("SELECT 1");
+};
