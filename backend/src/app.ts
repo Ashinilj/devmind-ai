@@ -9,3 +9,5 @@ app.use(express.json());
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/projects', projectRoutes);
 app.use(errorHandler);
+
+export default app;

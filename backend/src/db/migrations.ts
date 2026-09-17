@@ -5,7 +5,7 @@ import { pool } from "./database.js";
 const migrations = [
   {
     name: "001_create_projects",
-    file: new URL("./migrations/001_create_projects.sql", import.meta.url),
+    file: new URL("../../migrations/001_create_projects.sql", import.meta.url),
   },
 ];
 
