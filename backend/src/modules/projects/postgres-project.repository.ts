@@ -33,22 +33,19 @@ function toProject(row: ProjectRow): Project {
 }
 
 export class PostgresProjectRepository implements IProjectRepository {
-  async create(project: Project): Promise<Project> {
+  async create(project: Pick<Project, "name" | "description" | "repositoryUrl">): Promise<Project> {
     const result = await pool.query<ProjectRow>(
       `
         INSERT INTO projects (
-          id, name, description, repository_url, created_at, updated_at
+          name, description, repository_url
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3)
         RETURNING id, name, description, repository_url, created_at, updated_at
       `,
       [
-        project.id,
         project.name,
         project.description,
         project.repositoryUrl,
-        project.createdAt,
-        project.updatedAt,
       ],
     );
 

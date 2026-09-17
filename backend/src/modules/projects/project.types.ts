@@ -6,3 +6,8 @@ export interface Project {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type CreateProject = Pick<
+  Project,
+  "name" | "description" | "repositoryUrl"
+>;

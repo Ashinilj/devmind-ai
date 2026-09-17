@@ -3,12 +3,20 @@ import type {
   FindAllResult,
   IProjectRepository,
 } from "./project.repository.js";
-import type { Project } from "./project.types.js";
+import type { CreateProject, Project } from "./project.types.js";
 
 export class InMemoryProjectRepository implements IProjectRepository {
   private readonly projects: Project[] = [];
 
-  async create(project: Project): Promise<Project> {
+  async create(input: CreateProject): Promise<Project> {
+    const now = new Date();
+    const project: Project = {
+      id: crypto.randomUUID(),
+      ...input,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     this.projects.push(project);
     return project;
   }

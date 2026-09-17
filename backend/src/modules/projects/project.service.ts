@@ -7,15 +7,7 @@ export class ProjectService {
   constructor(private readonly repository: IProjectRepository) {}
 
   async createProject(input: CreateProjectRequest): Promise<Project> {
-    const now = new Date();
-    const project: Project = {
-      id: crypto.randomUUID(),
-      ...input,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    return this.repository.create(project);
+    return this.repository.create(input);
   }
 
   async listProjects(options: ListProjectsQuery) {

@@ -1,4 +1,4 @@
-import type { Project } from "./project.types.js";
+import type { CreateProject, Project } from "./project.types.js";
 
 export interface FindAllOptions {
   page: number;
@@ -14,7 +14,7 @@ export interface FindAllResult {
 }
 
 export interface IProjectRepository {
-  create(project: Project): Promise<Project>;
+  create(project: CreateProject): Promise<Project>;
   findAll(options: FindAllOptions): Promise<FindAllResult>;
   findById(id: string): Promise<Project | null>;
   delete(id: string): Promise<boolean>;

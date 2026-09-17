@@ -7,6 +7,14 @@ const migrations = [
     name: "001_create_projects",
     file: new URL("../../migrations/001_create_projects.sql", import.meta.url),
   },
+  {
+    name: "002_project_database_defaults",
+    file: new URL("../../migrations/002_project_database_defaults.sql", import.meta.url),
+  },
+  {
+    name: "002_add_project_indexes",
+    file: new URL("../../migrations/002_add_project_indexes.sql", import.meta.url),
+  },
 ];
 
 export async function runMigrations(): Promise<void> {
