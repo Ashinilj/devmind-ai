@@ -15,6 +15,13 @@ const migrations = [
     name: "002_add_project_indexes",
     file: new URL("../../migrations/002_add_project_indexes.sql", import.meta.url),
   },
+  {
+    name: "003_add_users_and_project_ownership",
+    file: new URL(
+      "../../migrations/003_add_users_and_project_ownership.sql",
+      import.meta.url,
+    ),
+  },
 ];
 
 export async function runMigrations(): Promise<void> {
