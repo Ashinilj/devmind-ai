@@ -13,52 +13,9 @@ export interface FindAllResult {
   total: number;
 }
 
-export class ProjectRepository {
-  private readonly projects = new Map<string, Project>();
-
-  create(project: Project): Project {
-    this.projects.set(project.id, project);
-    return project;
-  }
-
-  findAll(options: FindAllOptions): FindAllResult {
-    const search = options.search?.toLowerCase();
-    const filteredProjects = [...this.projects.values()].filter((project) => {
-      if (!search) {
-        return true;
-      }
-
-      return (
-        project.name.toLowerCase().includes(search) ||
-        project.description.toLowerCase().includes(search)
-      );
-    });
-
-    filteredProjects.sort((first, second) => {
-      const firstValue = options.sortBy === "name"
-        ? first.name.toLowerCase()
-        : first.createdAt.getTime();
-      const secondValue = options.sortBy === "name"
-        ? second.name.toLowerCase()
-        : second.createdAt.getTime();
-      const comparison = firstValue < secondValue ? -1 : firstValue > secondValue ? 1 : 0;
-
-      return options.sortOrder === "asc" ? comparison : -comparison;
-    });
-
-    const offset = (options.page - 1) * options.limit;
-
-    return {
-      projects: filteredProjects.slice(offset, offset + options.limit),
-      total: filteredProjects.length,
-    };
-  }
-
-  findById(id: string): Project | undefined {
-    return this.projects.get(id);
-  }
-
-  delete(id: string): boolean {
-    return this.projects.delete(id);
-  }
+export interface IProjectRepository {
+  create(project: Project): Promise<Project>;
+  findAll(options: FindAllOptions): Promise<FindAllResult>;
+  findById(id: string): Promise<Project | null>;
+  delete(id: string): Promise<boolean>;
 }

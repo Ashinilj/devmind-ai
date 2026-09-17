@@ -1,12 +1,12 @@
 import { AppError } from "../../utils/app-error.js";
 import type { CreateProjectRequest, ListProjectsQuery } from "./project.dto.js";
-import { ProjectRepository } from "./project.repository.js";
+import type { IProjectRepository } from "./project.repository.js";
 import type { Project } from "./project.types.js";
 
 export class ProjectService {
-  constructor(private readonly repository = new ProjectRepository()) {}
+  constructor(private readonly repository: IProjectRepository) {}
 
-  createProject(input: CreateProjectRequest): Project {
+  async createProject(input: CreateProjectRequest): Promise<Project> {
     const now = new Date();
     const project: Project = {
       id: crypto.randomUUID(),
@@ -18,8 +18,8 @@ export class ProjectService {
     return this.repository.create(project);
   }
 
-  listProjects(options: ListProjectsQuery) {
-    const { projects, total } = this.repository.findAll(options);
+  async listProjects(options: ListProjectsQuery) {
+    const { projects, total } = await this.repository.findAll(options);
 
     return {
       data: projects,
@@ -32,17 +32,17 @@ export class ProjectService {
     };
   }
 
-  getProject(id: string): Project {
-    const project = this.repository.findById(id);
+  async getProject(id: string): Promise<Project> {
+    const project = await this.repository.findById(id);
 
-    if (!project) {
+    if (project === null) {
       throw new AppError("Project not found", 404);
     }
 
     return project;
   }
 
-  deleteProject(id: string): void {
+  async deleteProject(id: string): Promise<void> {
     if (!this.repository.delete(id)) {
       throw new AppError("Project not found", 404);
     }

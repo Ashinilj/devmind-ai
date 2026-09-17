@@ -1,30 +1,34 @@
 import type { Request, Response } from "express";
 import type { CreateProjectRequest, ListProjectsQuery } from "./project.dto.js";
+import { InMemoryProjectRepository } from "./in-memory-project.repository.js";
 import { ProjectService } from "./project.service.js";
 
-const projectService = new ProjectService();
+const projectService = new ProjectService(new InMemoryProjectRepository());
 
-export const createProject = (
+export const createProject = async (
   req: Request<{}, {}, CreateProjectRequest>,
   res: Response,
 ) => {
-  res.status(201).json(projectService.createProject(req.body));
+  const project = await projectService.createProject(req.body);
+  res.status(201).json(project);
 };
 
-export const listProjects = (
+export const listProjects = async (
   _req: Request<{}, unknown, unknown, ListProjectsQuery>,
   res: Response,
 ) => {
-  res.status(200).json(
-    projectService.listProjects(res.locals.validatedQuery as ListProjectsQuery),
+  const result = await projectService.listProjects(
+    res.locals.validatedQuery as ListProjectsQuery,
   );
+  res.status(200).json(result);
 };
 
-export const getProject = (req: Request<{ id: string }>, res: Response) => {
-  res.status(200).json(projectService.getProject(req.params.id));
+export const getProject = async (req: Request<{ id: string }>, res: Response) => {
+  const project = await projectService.getProject(req.params.id);
+  res.status(200).json(project);
 };
 
-export const deleteProject = (req: Request<{ id: string }>, res: Response) => {
-  projectService.deleteProject(req.params.id);
+export const deleteProject = async (req: Request<{ id: string }>, res: Response) => {
+  await projectService.deleteProject(req.params.id);
   res.status(204).send();
 };
