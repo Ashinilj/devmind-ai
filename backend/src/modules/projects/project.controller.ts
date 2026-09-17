@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 import type { CreateProjectRequest, ListProjectsQuery } from "./project.dto.js";
-import { InMemoryProjectRepository } from "./in-memory-project.repository.js";
+import { PostgresProjectRepository } from "./postgres-project.repository.js";
 import { ProjectService } from "./project.service.js";
 
-const projectService = new ProjectService(new InMemoryProjectRepository());
+const projectService = new ProjectService(new PostgresProjectRepository());
 
 export const createProject = async (
   req: Request<{}, {}, CreateProjectRequest>,

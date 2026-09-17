@@ -43,7 +43,7 @@ export class ProjectService {
   }
 
   async deleteProject(id: string): Promise<void> {
-    if (!this.repository.delete(id)) {
+    if (!(await this.repository.delete(id))) {
       throw new AppError("Project not found", 404);
     }
   }
