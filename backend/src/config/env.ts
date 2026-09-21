@@ -9,6 +9,8 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_USER: z.string().min(1),
   DB_PASSWORD: z.string().min(1),
+  JWT_SECRET: z.string().min(32),
+  JWT_ACCESS_TOKEN_EXPIRES_IN: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -28,5 +30,10 @@ export const env = {
     name: parsedEnv.data.DB_NAME,
     user: parsedEnv.data.DB_USER,
     password: parsedEnv.data.DB_PASSWORD,
+  },
+
+  jwt: {
+    secret: parsedEnv.data.JWT_SECRET,
+    accessTokenExpiresIn: parsedEnv.data.JWT_ACCESS_TOKEN_EXPIRES_IN,
   },
 };

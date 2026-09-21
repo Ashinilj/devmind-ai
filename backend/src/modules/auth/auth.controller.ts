@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { AuthRegisterRequest } from "./auth.dto.js";
+import type { AuthLoginRequest, AuthRegisterRequest } from "./auth.dto.js";
 import { AuthService } from "./auth.service.js";
 import { PostgresUserRepository } from "../users/postgres-user.repository.js";
 
@@ -11,4 +11,12 @@ export const register = async (
 ) => {
   const user = await authService.register(req.body.email, req.body.password);
   res.status(201).json(user);
+};
+
+export const login = async (
+  req: Request<{}, {}, AuthLoginRequest>,
+  res: Response,
+) => {
+  const result = await authService.login(req.body.email, req.body.password);
+  res.status(200).json(result);
 };
