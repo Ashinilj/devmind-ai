@@ -12,4 +12,5 @@ export interface UserWithPassword extends User {
 export interface IUserRepository {
   create(user: CreateUser): Promise<User>;
   findByEmail(email: string): Promise<UserWithPassword | null>;
+  findById(id: string): Promise<User | null>;
 }

@@ -21,3 +21,13 @@ export function createAccessToken(userId: string): string {
     { expiresIn: getAccessTokenExpiresInSeconds() },
   );
 }
+
+export function verifyAccessToken(token: string): jwt.JwtPayload {
+  const payload = jwt.verify(token, env.jwt.secret);
+
+  if (typeof payload === "string") {
+    throw new Error("Invalid JWT payload");
+  }
+
+  return payload;
+}

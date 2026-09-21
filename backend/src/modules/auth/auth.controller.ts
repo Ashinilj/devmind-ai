@@ -20,3 +20,13 @@ export const login = async (
   const result = await authService.login(req.body.email, req.body.password);
   res.status(200).json(result);
 };
+
+export const me = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ status: "error", message: "Authentication required" });
+    return;
+  }
+
+  const user = await authService.getCurrentUser(req.user.id);
+  res.status(200).json(user);
+};

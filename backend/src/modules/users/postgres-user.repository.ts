@@ -63,4 +63,17 @@ export class PostgresUserRepository implements IUserRepository {
 
     return result.rows[0] ? toUserWithPassword(result.rows[0]) : null;
   }
+
+  async findById(id: string): Promise<User | null> {
+    const result = await pool.query<UserRow>(
+      `
+        SELECT id, email, created_at, updated_at
+        FROM users
+        WHERE id = $1
+      `,
+      [id],
+    );
+
+    return result.rows[0] ? toUser(result.rows[0]) : null;
+  }
 }

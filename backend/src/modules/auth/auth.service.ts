@@ -42,4 +42,14 @@ export class AuthService {
       expiresIn: getAccessTokenExpiresInSeconds(),
     };
   }
+
+  async getCurrentUser(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    return user;
+  }
 }
