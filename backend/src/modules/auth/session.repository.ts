@@ -9,7 +9,11 @@ export interface CreateRefreshSession {
 export interface IRefreshSessionRepository {
   create(session: CreateRefreshSession): Promise<RefreshSession>;
   findActiveByTokenHash(tokenHash: string): Promise<RefreshSession | null>;
-  revoke(id: string): Promise<boolean>;
+  revoke(id: string): Promise<void>;
   revokeAllForUser(userId: string): Promise<void>;
   deleteExpiredSessions(): Promise<number>;
+  rotate(
+    revokedSessionId: string,
+    input: CreateRefreshSession,
+  ): Promise<RefreshSession>;
 }

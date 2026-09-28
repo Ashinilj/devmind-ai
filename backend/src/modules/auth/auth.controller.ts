@@ -6,12 +6,12 @@ import type {
 } from "./auth.dto.js";
 import { AuthService } from "./auth.service.js";
 import { PostgresUserRepository } from "../users/postgres-user.repository.js";
-import { PostgresSessionRepository } from "./postgres-session.repository.js";
+import { PostgresRefreshSessionRepository } from "./postgres-refresh-session.repository.js";
 import { AppError } from "../../utils/app-error.js";
 
 const authService = new AuthService(
   new PostgresUserRepository(),
-  new PostgresSessionRepository(),
+  new PostgresRefreshSessionRepository(),
 );
 
 function getRefreshToken(req: Request): string {

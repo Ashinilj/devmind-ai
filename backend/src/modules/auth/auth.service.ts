@@ -7,7 +7,7 @@ import {
 import type { User } from "../users/user.types.js";
 import type { IUserRepository } from "../users/user.repository.js";
 import type { IRefreshSessionRepository } from "./session.repository.js";
-import { generateRefreshToken, hashRefreshToken } from "../../utils/refresh-token.js";
+import { generateRefreshToken, hashRefreshToken } from "./refresh-token.js";
 
 const refreshTokenLifetimeMs = 30 * 24 * 60 * 60 * 1000;
 
@@ -54,8 +54,7 @@ export class AuthService {
       throw new AppError("Authentication required", 401);
     }
 
-    await this.sessionRepository.revoke(session.id);
-    return this.createTokenPair(session.userId);
+    return this.createTokenPair(session.userId, session.id);
   }
 
   async logout(refreshToken: string): Promise<void> {
@@ -63,23 +62,31 @@ export class AuthService {
       hashRefreshToken(refreshToken),
     );
 
-    if (!session || !(await this.sessionRepository.revoke(session.id))) {
+    if (!session) {
       throw new AppError("Authentication required", 401);
     }
+
+    await this.sessionRepository.revoke(session.id);
   }
 
   async logoutAll(userId: string): Promise<void> {
     await this.sessionRepository.revokeAllForUser(userId);
   }
 
-  private async createTokenPair(userId: string) {
+  private async createTokenPair(userId: string, revokedSessionId?: string) {
     const refreshToken = generateRefreshToken();
 
-    await this.sessionRepository.create({
+    const sessionInput = {
       userId,
       tokenHash: hashRefreshToken(refreshToken),
       expiresAt: new Date(Date.now() + refreshTokenLifetimeMs),
-    });
+    };
+
+    if (revokedSessionId) {
+      await this.sessionRepository.rotate(revokedSessionId, sessionInput);
+    } else {
+      await this.sessionRepository.create(sessionInput);
+    }
 
     return {
       accessToken: createAccessToken(userId),

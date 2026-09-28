@@ -26,7 +26,7 @@ function toRefreshSession(row: RefreshSessionRow): RefreshSession {
   };
 }
 
-export class PostgresSessionRepository implements IRefreshSessionRepository {
+export class PostgresRefreshSessionRepository implements IRefreshSessionRepository {
   async create(input: CreateRefreshSession): Promise<RefreshSession> {
     const result = await pool.query<RefreshSessionRow>(
       `
@@ -38,11 +38,7 @@ export class PostgresSessionRepository implements IRefreshSessionRepository {
     );
 
     const row = result.rows[0];
-
-    if (!row) {
-      throw new Error("Refresh session insert returned no row");
-    }
-
+    if (!row) throw new Error("Refresh session insert returned no row");
     return toRefreshSession(row);
   }
 
@@ -51,9 +47,7 @@ export class PostgresSessionRepository implements IRefreshSessionRepository {
       `
         SELECT id, user_id, token_hash, expires_at, created_at, revoked_at
         FROM refresh_sessions
-        WHERE token_hash = $1
-          AND revoked_at IS NULL
-          AND expires_at > NOW()
+        WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW()
       `,
       [tokenHash],
     );
@@ -61,26 +55,16 @@ export class PostgresSessionRepository implements IRefreshSessionRepository {
     return result.rows[0] ? toRefreshSession(result.rows[0]) : null;
   }
 
-  async revoke(id: string): Promise<boolean> {
-    const result = await pool.query(
-      `
-        UPDATE refresh_sessions
-        SET revoked_at = NOW()
-        WHERE id = $1 AND revoked_at IS NULL
-      `,
+  async revoke(id: string): Promise<void> {
+    await pool.query(
+      "UPDATE refresh_sessions SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL",
       [id],
     );
-
-    return result.rowCount === 1;
   }
 
   async revokeAllForUser(userId: string): Promise<void> {
     await pool.query(
-      `
-        UPDATE refresh_sessions
-        SET revoked_at = NOW()
-        WHERE user_id = $1 AND revoked_at IS NULL
-      `,
+      "UPDATE refresh_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL",
       [userId],
     );
   }
@@ -89,7 +73,38 @@ export class PostgresSessionRepository implements IRefreshSessionRepository {
     const result = await pool.query(
       "DELETE FROM refresh_sessions WHERE expires_at < NOW()",
     );
-
     return result.rowCount ?? 0;
+  }
+
+  async rotate(
+    revokedSessionId: string,
+    input: CreateRefreshSession,
+  ): Promise<RefreshSession> {
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE refresh_sessions SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL",
+        [revokedSessionId],
+      );
+      const result = await client.query<RefreshSessionRow>(
+        `
+          INSERT INTO refresh_sessions (user_id, token_hash, expires_at)
+          VALUES ($1, $2, $3)
+          RETURNING id, user_id, token_hash, expires_at, created_at, revoked_at
+        `,
+        [input.userId, input.tokenHash, input.expiresAt],
+      );
+      const row = result.rows[0];
+      if (!row) throw new Error("Refresh session rotation returned no row");
+      await client.query("COMMIT");
+      return toRefreshSession(row);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }

@@ -29,6 +29,13 @@ const migrations = [
       import.meta.url,
     ),
   },
+  {
+    name: "005_add_refresh_session_expires_index",
+    file: new URL(
+      "../../migrations/005_add_refresh_session_expires_index.sql",
+      import.meta.url,
+    ),
+  },
 ];
 
 export async function runMigrations(): Promise<void> {
