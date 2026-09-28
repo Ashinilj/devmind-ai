@@ -14,8 +14,8 @@ export interface FindAllResult {
 }
 
 export interface IProjectRepository {
-  create(project: CreateProject): Promise<Project>;
-  findAll(options: FindAllOptions): Promise<FindAllResult>;
-  findById(id: string): Promise<Project | null>;
-  delete(id: string): Promise<boolean>;
+  create(ownerId: string, project: CreateProject): Promise<Project>;
+  findAll(ownerId: string, options: FindAllOptions): Promise<FindAllResult>;
+  findById(id: string, ownerId: string): Promise<Project | null>;
+  delete(id: string, ownerId: string): Promise<boolean>;
 }

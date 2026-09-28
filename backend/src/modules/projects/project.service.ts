@@ -6,12 +6,12 @@ import type { Project } from "./project.types.js";
 export class ProjectService {
   constructor(private readonly repository: IProjectRepository) {}
 
-  async createProject(input: CreateProjectRequest): Promise<Project> {
-    return this.repository.create(input);
+  async createProject(ownerId: string, input: CreateProjectRequest): Promise<Project> {
+    return this.repository.create(ownerId, input);
   }
 
-  async listProjects(options: ListProjectsQuery) {
-    const { projects, total } = await this.repository.findAll(options);
+  async listProjects(ownerId: string, options: ListProjectsQuery) {
+    const { projects, total } = await this.repository.findAll(ownerId, options);
 
     return {
       data: projects,
@@ -24,8 +24,8 @@ export class ProjectService {
     };
   }
 
-  async getProject(id: string): Promise<Project> {
-    const project = await this.repository.findById(id);
+  async getProject(ownerId: string, id: string): Promise<Project> {
+    const project = await this.repository.findById(id, ownerId);
 
     if (project === null) {
       throw new AppError("Project not found", 404);
@@ -34,8 +34,8 @@ export class ProjectService {
     return project;
   }
 
-  async deleteProject(id: string): Promise<void> {
-    if (!(await this.repository.delete(id))) {
+  async deleteProject(ownerId: string, id: string): Promise<void> {
+    if (!(await this.repository.delete(id, ownerId))) {
       throw new AppError("Project not found", 404);
     }
   }

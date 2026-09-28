@@ -9,6 +9,7 @@ import type { Project } from "./project.types.js";
 
 interface ProjectRow extends QueryResultRow {
   id: string;
+  owner_id: string;
   name: string;
   description: string;
   repository_url: string;
@@ -24,6 +25,7 @@ const sortColumns = {
 function toProject(row: ProjectRow): Project {
   return {
     id: row.id,
+    ownerId: row.owner_id,
     name: row.name,
     description: row.description,
     repositoryUrl: row.repository_url,
@@ -33,16 +35,17 @@ function toProject(row: ProjectRow): Project {
 }
 
 export class PostgresProjectRepository implements IProjectRepository {
-  async create(project: Pick<Project, "name" | "description" | "repositoryUrl">): Promise<Project> {
+  async create(ownerId: string, project: Pick<Project, "name" | "description" | "repositoryUrl">): Promise<Project> {
     const result = await pool.query<ProjectRow>(
       `
         INSERT INTO projects (
-          name, description, repository_url
+          owner_id, name, description, repository_url
         )
-        VALUES ($1, $2, $3)
-        RETURNING id, name, description, repository_url, created_at, updated_at
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, owner_id, name, description, repository_url, created_at, updated_at
       `,
       [
+        ownerId,
         project.name,
         project.description,
         project.repositoryUrl,
@@ -58,9 +61,9 @@ export class PostgresProjectRepository implements IProjectRepository {
     return toProject(row);
   }
 
-  async findAll(options: FindAllOptions): Promise<FindAllResult> {
-    const values: unknown[] = [];
-    const conditions: string[] = [];
+  async findAll(ownerId: string, options: FindAllOptions): Promise<FindAllResult> {
+    const values: unknown[] = [ownerId];
+    const conditions: string[] = ["owner_id = $1"];
 
     if (options.search) {
       values.push(`%${options.search}%`);
@@ -82,7 +85,7 @@ export class PostgresProjectRepository implements IProjectRepository {
     const dataValues = [...values, options.limit, offset];
     const projectsResult = await pool.query<ProjectRow>(
       `
-        SELECT id, name, description, repository_url, created_at, updated_at
+        SELECT id, owner_id, name, description, repository_url, created_at, updated_at
         FROM projects
         ${whereClause}
         ORDER BY ${sortColumn} ${sortDirection}
@@ -97,21 +100,21 @@ export class PostgresProjectRepository implements IProjectRepository {
     };
   }
 
-  async findById(id: string): Promise<Project | null> {
+  async findById(id: string, ownerId: string): Promise<Project | null> {
     const result = await pool.query<ProjectRow>(
       `
-        SELECT id, name, description, repository_url, created_at, updated_at
+        SELECT id, owner_id, name, description, repository_url, created_at, updated_at
         FROM projects
-        WHERE id = $1
+        WHERE id = $1 AND owner_id = $2
       `,
-      [id],
+      [id, ownerId],
     );
 
     return result.rows[0] ? toProject(result.rows[0]) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await pool.query("DELETE FROM projects WHERE id = $1", [id]);
+  async delete(id: string, ownerId: string): Promise<boolean> {
+    const result = await pool.query("DELETE FROM projects WHERE id = $1 AND owner_id = $2", [id, ownerId]);
     return result.rowCount === 1;
   }
 }

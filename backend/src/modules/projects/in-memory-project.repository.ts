@@ -8,10 +8,11 @@ import type { CreateProject, Project } from "./project.types.js";
 export class InMemoryProjectRepository implements IProjectRepository {
   private readonly projects: Project[] = [];
 
-  async create(input: CreateProject): Promise<Project> {
+  async create(ownerId: string, input: CreateProject): Promise<Project> {
     const now = new Date();
     const project: Project = {
       id: crypto.randomUUID(),
+      ownerId,
       ...input,
       createdAt: now,
       updatedAt: now,
@@ -21,9 +22,13 @@ export class InMemoryProjectRepository implements IProjectRepository {
     return project;
   }
 
-  async findAll(options: FindAllOptions): Promise<FindAllResult> {
+  async findAll(ownerId: string, options: FindAllOptions): Promise<FindAllResult> {
     const search = options.search?.toLowerCase();
     const filteredProjects = this.projects.filter((project) => {
+      if (project.ownerId !== ownerId) {
+        return false;
+      }
+
       if (!search) {
         return true;
       }
@@ -54,12 +59,12 @@ export class InMemoryProjectRepository implements IProjectRepository {
     };
   }
 
-  async findById(id: string): Promise<Project | null> {
-    return this.projects.find((project) => project.id === id) ?? null;
+  async findById(id: string, ownerId: string): Promise<Project | null> {
+    return this.projects.find((project) => project.id === id && project.ownerId === ownerId) ?? null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const index = this.projects.findIndex((project) => project.id === id);
+  async delete(id: string, ownerId: string): Promise<boolean> {
+    const index = this.projects.findIndex((project) => project.id === id && project.ownerId === ownerId);
 
     if (index === -1) {
       return false;

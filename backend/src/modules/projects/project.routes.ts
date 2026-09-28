@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { validateBody, validateQuery } from "../../middleware/validation.middleware.js";
+import { requireAuth } from "../../middleware/auth.middleware.js";
 import {
   createProject,
   deleteProject,
@@ -14,6 +15,7 @@ import {
 
 export const projectRoutes = Router();
 
+projectRoutes.use(requireAuth);
 projectRoutes.post("/", validateBody(createProjectSchema), createProject);
 projectRoutes.get<{}, unknown, unknown, ListProjectsQuery>(
   "/",
