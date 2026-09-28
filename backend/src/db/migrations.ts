@@ -22,6 +22,13 @@ const migrations = [
       import.meta.url,
     ),
   },
+  {
+    name: "004_create_refresh_sessions",
+    file: new URL(
+      "../../migrations/004_create_refresh_sessions.sql",
+      import.meta.url,
+    ),
+  },
 ];
 
 export async function runMigrations(): Promise<void> {

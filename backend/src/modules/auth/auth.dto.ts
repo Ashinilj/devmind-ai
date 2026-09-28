@@ -13,3 +13,9 @@ export const authLoginSchema = z.object({
 });
 
 export type AuthLoginRequest = z.infer<typeof authLoginSchema>;
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export type RefreshTokenRequest = z.infer<typeof refreshTokenSchema>;
